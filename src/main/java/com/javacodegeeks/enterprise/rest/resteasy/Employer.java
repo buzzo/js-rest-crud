@@ -2,10 +2,19 @@ package com.javacodegeeks.enterprise.rest.resteasy;
 
 public class Employer {
 
+	private boolean active;
 	private String code;
 	private String name;
 	private String badge;
 	private String position;
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
 
 	public String getCode() {
 		return code;

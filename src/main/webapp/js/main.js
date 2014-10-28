@@ -1,28 +1,34 @@
-$(document).ready(function() {
+var app = angular
+		.module('main', [ 'ngTable', 'ngResource' ])
+		.controller(
+				'listController',
+				function($scope, $filter, $resource, $location, $timeout,
+						ngTableParams) {
+					
+					var data = [];
+					var api = $resource('http://localhost:8180/resteasy/rest/employer');
 
-	// table
-	$("#table").webix_datatable({
-	    columns : [ {
-			id : "code",
-			header : [ "Codigo",{content:"textFilter"}], 
-			sort:"string"
-		}, {
-			id : "badge",
-			header : [ "Matricula",{content:"textFilter"}], 
-			sort:"string"
-		}, {
-			id : "name",
-			header : [ "Nome",{content:"textFilter"}], 
-			sort:"string"
-		}, {
-			id : "position",
-			header : [ "Cargo",{content:"textFilter"}], 
-			sort:"string"
-		} ],
-		autoheight : true,
-		autowidth : true,
-		url : "http://localhost:8180/resteasy/rest/employer"
-	});
+					$scope.tableParams = new ngTableParams({
+						page : 1, // show first page
+						count : 10, // count per page
+						sorting : {
+							code : 'desc' // initial sorting
+						}
+					}, {
+						total : data.length, // length of data
+						getData : function($defer, params) {
+							$location.search(params.url());
+							api.get(params.url(), function(data) {
+								$timeout(function() {
+									params.total(data.total);
+									$defer.resolve(data.result);
+								}, 500);
+							});
+						}
+					});
+				});
+
+$(document).ready(function() {
 
 	// open modal
 	$('.ui.button').on('click', function() {
@@ -106,6 +112,9 @@ $(document).ready(function() {
 					$('.ui.modal').modal('hide');
 					// reset modal form
 					$('#form').trigger('reset');
+				},
+				error: function(data) {
+					console.log(JSON.stringify($('#form').serializeJSON()));
 				}
 			});
 
