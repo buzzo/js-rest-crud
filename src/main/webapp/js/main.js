@@ -1,10 +1,10 @@
 var app = angular
 		.module('main', [ 'ngTable', 'ngResource' ])
 		.controller(
-				'listController',
+				'formController',
 				function($scope, $filter, $resource, $location, $timeout,
 						ngTableParams) {
-					
+
 					var data = [];
 					var api = $resource('http://localhost:8180/resteasy/rest/employer');
 
@@ -26,26 +26,46 @@ var app = angular
 							});
 						}
 					});
+
+					$scope.edit = function(obj) {
+						// uses local storage
+
+						// $('#form').trigger('reset');
+						// $('#add_form').modal('show');
+					}
+
+					// remove button was pressed
+					$scope.remove = function(obj) {
+						// uses local storage
+						localStorage.setItem('id', obj);
+						$('#remove_confirmation').modal('show');
+					}
+
+					// exposed method for jquery call and reload table
+					$scope.tableReload = function() {
+						$scope.tableParams.reload();
+					}
+
 				});
 
 $(document).ready(function() {
 
 	// open modal
-	$('.ui.button').on('click', function() {
-		$('.ui.modal').modal('show');
+	$('#add_btn').on('click', function() {
+		$('#add_form').modal('show');
 	});
 
 	// hide the messages
-	$('.ui.message').hide();
+	$('#message_box').hide();
 
 	// hide message box when click over the X
-	$('#message-close').on('click', function() {
-		$('.ui.message').hide('slow');
+	$('#message_close').on('click', function() {
+		$('#message_box').hide('slow');
 	});
 
 	// close modal
-	$('.ui.button.negative').on('click', function() {
-		$('.ui.modal').modal('hide');
+	$('#add_form_cancel').on('click', function() {
+		$('#add_form').modal('hide');
 		// reset modal form
 		$('#form').trigger('reset');
 	});
@@ -105,20 +125,64 @@ $(document).ready(function() {
 					// message
 					$('#message').text('Funcionario adicionado com sucesso.');
 					// make it green
-					$('.ui.message').addClass('success');
+					$('#message_box').addClass('success');
 					// show message box
-					$('.ui.message').show();
+					$('#message_box').show();
 					// hide modal
-					$('.ui.modal').modal('hide');
+					$('#add_form').modal('hide');
 					// reset modal form
 					$('#form').trigger('reset');
+					// call to angularjs to reload
+					angular.element('#body_crud').scope().tableReload();
 				},
-				error: function(data) {
-					console.log(JSON.stringify($('#form').serializeJSON()));
+				error : function(data) {
+					console.log(data);
+					// message
+					$('#message').text('Erro na comunicacao com o servidor.');
+					// make it red
+					$('#message_box').addClass('error');
+					// show message box
+					$('#message_box').show();
+					// hide modal
+					$('#add_form').modal('hide');
 				}
 			});
 
 		}
+	});
+
+	$('#remove_ok').on('click', function() {
+		$.ajax({
+			url : 'http://localhost:8180/resteasy/rest/employer',
+			type : 'delete',
+			contentType : 'text/plain',
+			data : localStorage.getItem('id'),
+			success : function(data) {
+				// message
+				$('#message').text('Funcionario removido com sucesso.');
+				// make it green
+				$('#message_box').addClass('success');
+				// show message box
+				$('#message_box').show();
+				// hide modal
+				$('#add_form').modal('hide');
+				// reset modal form
+				$('#form').trigger('reset');
+				// call to angularjs to reload
+				angular.element('#body_crud').scope().tableReload();
+			},
+			error : function(data) {
+				console.log(data);
+				// message
+				$('#message').text('Erro na comunicacao com o servidor.');
+				// make it red
+				$('#message_box').addClass('error');
+				// show message box
+				$('#message_box').show();
+				// hide modal
+				$('#add_form').modal('hide');
+			}
+		});
 	});
 
 });

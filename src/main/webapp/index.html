@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="main">
 <head>
 <!-- Standard Meta -->
 <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-<meta name="viewport"
-	content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
 <!-- Site Properities -->
 <title>Funcionario CRUD</title>
@@ -15,24 +14,19 @@
 <link rel="stylesheet" type="text/css" href="css/ng-table.min.css">
 <link rel="stylesheet" type="text/css" href="css/main.css">
 </head>
-<body ng-app="main">
+<body id="body_crud" ng-controller="formController">
 
 	<!-- Main message text box -->
-	<div class="ui message">
-		<i id="message-close" class="close icon"></i>
+	<div id="message_box" class="ui message">
+		<i id="message_close" class="close icon"></i>
 		<div id="message" class="header"></div>
 	</div>
 
-	<br />
-	<br />
-	<br />
-
-	<div ng-controller="listController">
-		<table ng-table="tableParams" show-filter="true"
-			class="ui table segment padded">
+	<div>
+		<!-- List -->
+		<table ng-table="tableParams" show-filter="true" class="ui table segment padded">
 			<tr ng-repeat="emp in $data">
-				<td data-title="'Ativo'"
-					ng-class="emp.active ? 'positive' : 'error'">
+				<td data-title="'Ativo'" ng-class="emp.active ? 'positive' : 'error'">
 					<div ng-if="emp.active">
 						<i class="icon checkmark"></i>
 					</div>
@@ -40,32 +34,40 @@
 						<i class="icon close"></i>
 					</div>
 				</td>
-				<td data-title="'Codigo'" sortable="'code'"
-					filter="{ 'code': 'text' }">{{emp.code}}</td>
-				<td data-title="'Matricula'" sortable="'bagde'"
-					filter="{ 'badge': 'text' }">{{emp.badge}}</td>
-				<td data-title="'Nome'" sortable="'name'"
-					filter="{ 'name': 'text' }">{{emp.name}}</td>
-				<td data-title="'Cargo'" sortable="'position'"
-					filter="{ 'position': 'text' }">{{emp.position}}</td>
-				<td data-title="'Acoes'"></td>
+				<td data-title="'Codigo'" sortable="'code'" filter="{ 'code': 'text' }">{{emp.code}}</td>
+				<td data-title="'Matricula'" sortable="'bagde'" filter="{ 'badge': 'text' }">{{emp.badge}}</td>
+				<td data-title="'Nome'" sortable="'name'" filter="{ 'name': 'text' }">{{emp.name}}</td>
+				<td data-title="'Cargo'" sortable="'position'" filter="{ 'position': 'text' }">{{emp.position}}</td>
+				<td data-title="'Acoes'"><i ng-click="edit(emp.id)" class="icon edit circular link"></i><i ng-click="remove(emp.id)"
+					class="icon remove circular red link"></i></td>
 			</tr>
-
 			<tfoot>
 				<tr>
 					<th colspan="6">
-						<div class="ui labeled blue icon button mini">
-							<i class="plus icon"></i>Novo Funcionario
+						<div id="add_btn" class="ui labeled blue icon button mini">
+							<i class="plus icon"></i> Novo Funcionario
 						</div>
 					</th>
 				</tr>
 			</tfoot>
-
 		</table>
 	</div>
+	
+	<!-- Confirmation Remove Modal -->
+	<div id="remove_confirmation" class="ui modal small">
+		<i class="close icon"></i>
+		<div class="header">Remover Funcionario?</div>
+		<div class="content">
+			<div class="left">Tem certeza que deseja remover este funcionario?</div>
+		</div>
+		<div class="actions">
+			<div id="remove_ok" class="ui button small negative">Remover</div>
+			<div class="ui button small">Cancelar</div>
+		</div>
+	</div>
 
-	<!-- Modal -->
-	<div class="ui modal small">
+	<!-- Form Modal -->
+	<div id="add_form" class="ui modal small">
 
 		<!-- Form -->
 		<form id="form">
@@ -73,16 +75,14 @@
 				<div class="inline field">
 					<div class="ui checkbox large">
 						<!-- value='true' is mandatory otherwise data object over backend cannot be created because it sends 'on' -->
-						<input id="check" name="active" type="checkbox" value="true">
-						<label for="check">Ativo</label>
+						<input id="check" name="active" type="checkbox" value="true"> <label for="check">Ativo</label>
 					</div>
 				</div>
 				<div class="two fields">
 					<div class="field">
 						<label>Codigo</label>
 						<div class="ui left labeled icon input">
-							<input placeholder="Codigo" name="code" type="text"> <i
-								class="key icon"></i>
+							<input placeholder="Codigo" name="code" type="text"> <i class="key icon"></i>
 							<div class="ui corner label">
 								<i class="icon asterisk"></i>
 							</div>
@@ -91,8 +91,7 @@
 					<div class="field">
 						<label>Matricula</label>
 						<div class="ui left labeled icon input">
-							<input placeholder="Matricula" name="badge" type="text">
-							<i class="book icon"></i>
+							<input placeholder="Matricula" name="badge" type="text"> <i class="book icon"></i>
 							<div class="ui corner label">
 								<i class="icon asterisk"></i>
 							</div>
@@ -102,8 +101,7 @@
 				<div class="field">
 					<label>Nome</label>
 					<div class="ui left labeled icon input">
-						<input placeholder="Nome" name="name" type="text"> <i
-							class="user icon"></i>
+						<input placeholder="Nome" name="name" type="text"> <i class="user icon"></i>
 						<div class="ui corner label">
 							<i class="icon asterisk"></i>
 						</div>
@@ -112,12 +110,11 @@
 				<div class="field">
 					<label>Cargo</label>
 					<div class="ui left labeled icon input">
-						<input placeholder="Cargo" name="position" type="text"> <i
-							class="male icon"></i>
+						<input placeholder="Cargo" name="position" type="text"> <i class="male icon"></i>
 					</div>
 				</div>
-				<div class="ui button small positive submit">Adicionar</div>
-				<div class="ui button small negative">Cancelar</div>
+				<div id="add_form_ok" class="ui button small positive submit">Adicionar</div>
+				<div id="add_form_cancel" class="ui button small negative">Cancelar</div>
 			</div>
 		</form>
 	</div>

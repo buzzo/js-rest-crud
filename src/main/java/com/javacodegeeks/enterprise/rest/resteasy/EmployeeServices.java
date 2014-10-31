@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -14,14 +15,16 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import com.google.gson.Gson;
 
 @Path("/employer")
-public class EmployerServices {
+public class EmployeeServices {
 
-	private static final List<Employer> database = new ArrayList<Employer>();
+	private static final List<Employee> database = new ArrayList<Employee>();
+	private static int id = 1;
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
@@ -38,7 +41,7 @@ public class EmployerServices {
 				+ filter);
 
 		return Response
-				.status(200)
+				.status(Status.OK)
 				.entity("{\"total\":" + database.size() + ",\"result\":"
 						+ new Gson().toJson(database) + "}").build();
 	}
@@ -64,20 +67,32 @@ public class EmployerServices {
 		return null;
 	}
 
+	@DELETE
+	@Consumes(MediaType.TEXT_PLAIN)
+	public Response remove(final String empToRemove) {
+		System.out.println("REMOVE: " + empToRemove);
+		for (final Employee emp : database) {
+			if (emp.getId() == Integer.parseInt(empToRemove)) {
+				database.remove(emp);
+				return Response.status(Status.OK).build();
+			}
+		}
+		return Response.status(Status.NOT_FOUND).build();
+	}
+
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response post(Employer emp) {
-		System.out.println("ADD: " + emp.getCode());
+	public Response post(Employee emp) {
+		emp.setId(id++);
+		System.out.println("ADD: " + emp.getId());
 		database.add(emp);
-		return Response.status(200).build();
+		return Response.status(Status.OK).build();
 	}
 
 	public static class Result {
-
 		private int total;
-		private List<Employer> list;
-
+		private List<Employee> list;
 	}
 
 }
