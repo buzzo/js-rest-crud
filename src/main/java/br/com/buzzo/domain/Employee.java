@@ -1,4 +1,4 @@
-package com.javacodegeeks.enterprise.rest.resteasy;
+package br.com.buzzo.domain;
 
 public class Employee {
 

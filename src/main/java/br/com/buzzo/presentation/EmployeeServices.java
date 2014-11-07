@@ -1,14 +1,17 @@
-package com.javacodegeeks.enterprise.rest.resteasy;
+package br.com.buzzo.presentation;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -18,13 +21,31 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import br.com.buzzo.domain.Employee;
+
 import com.google.gson.Gson;
 
 @Path("/employer")
 public class EmployeeServices {
 
-	private static final List<Employee> database = new ArrayList<Employee>();
-	private static int id = 1;
+	private static final Set<Employee> database = new HashSet<Employee>();
+	private static int id = 0;
+
+	@GET
+	@Path("/{id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getOne(@PathParam("id") String id) {
+		if (id == null || "".equals(id)) {
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+		for (final Employee emp : database) {
+			if (emp.getId() == Integer.parseInt(id)) {
+				return Response.status(Status.OK)
+						.entity(new Gson().toJson(emp)).build();
+			}
+		}
+		return Response.status(Status.NOT_FOUND).build();
+	}
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
@@ -80,11 +101,23 @@ public class EmployeeServices {
 		return Response.status(Status.NOT_FOUND).build();
 	}
 
+	@PUT
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response put(final Employee emp) {
+		System.out.println("UPDATE: " + emp.getId());
+		System.out.println("UPDATE: " + emp.getName());
+		// replace!
+		database.remove(emp);
+		database.add(emp);
+		return Response.status(Status.OK).build();
+	}
+
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response post(Employee emp) {
-		emp.setId(id++);
+		emp.setId(++id);
 		System.out.println("ADD: " + emp.getId());
 		database.add(emp);
 		return Response.status(Status.OK).build();
