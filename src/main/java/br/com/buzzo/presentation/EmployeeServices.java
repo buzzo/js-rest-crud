@@ -1,8 +1,6 @@
 package br.com.buzzo.presentation;
 
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.ws.rs.Consumes;
@@ -14,12 +12,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
 
 import br.com.buzzo.domain.Employee;
 
@@ -31,10 +26,24 @@ public class EmployeeServices {
 	private static final Set<Employee> database = new HashSet<Employee>();
 	private static int id = 0;
 
+	static {
+		for (int i = 0; i < 35; i++) {
+			Employee e = new Employee();
+			e.setActive(i % 2 == 0);
+			e.setId(++id);
+			e.setCode("code_" + id);
+			e.setName("name_" + id);
+			e.setBadge("badg_" + id);
+			e.setPosition("position_" + id);
+			database.add(e);
+		}
+	}
+
 	@GET
 	@Path("/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getOne(@PathParam("id") String id) {
+		System.out.println(" GET ---> "+ id);
 		if (id == null || "".equals(id)) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
@@ -49,48 +58,28 @@ public class EmployeeServices {
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response get(@QueryParam("count") final int count,
-			@QueryParam("page") final int page, @Context final UriInfo context) {
+	public Response get(@QueryParam("limit") final int limit,
+			@QueryParam("offset") final int offset,
+			@QueryParam("order") final String order,
+			@QueryParam("sort") final String sort,
+			@QueryParam("search") final String search) {
 
-		// TODO: lista de filtragens
-		final Entry<String, List<String>> sort = retriveComplexParam(
-				context.getQueryParameters(), PARAM.SORT);
-		final Entry<String, List<String>> filter = retriveComplexParam(
-				context.getQueryParameters(), PARAM.FILTER);
-
-		System.out.println("-->" + sort + " " + count + " " + page + " "
-				+ filter);
+		System.out.println("-->" + offset + " " + limit + " " + order + " "
+				+ sort + "  " + search);
 
 		return Response
 				.status(Status.OK)
-				.entity("{\"total\":" + database.size() + ",\"result\":"
+				.entity("{\"total\":" + database.size() + ",\"rows\":"
 						+ new Gson().toJson(database) + "}").build();
-	}
-
-	private static enum PARAM {
-		SORT("sorting"), FILTER("filter");
-
-		private String value;
-
-		private PARAM(final String val) {
-			value = val;
-		}
-
-	};
-
-	private Entry<String, List<String>> retriveComplexParam(
-			final MultivaluedMap<String, String> values, final PARAM param) {
-		for (final Entry<String, List<String>> entry : values.entrySet()) {
-			if (entry.getKey().startsWith(param.value)) {
-				return entry;
-			}
-		}
-		return null;
 	}
 
 	@DELETE
 	@Consumes(MediaType.TEXT_PLAIN)
 	public Response remove(final String empToRemove) {
+		if(empToRemove == null || "".equals(empToRemove.trim())) {
+			System.out.println("REMOVE ID VAZIO: " + empToRemove);
+			return Response.status(Status.NOT_FOUND).build();
+		}
 		System.out.println("REMOVE: " + empToRemove);
 		for (final Employee emp : database) {
 			if (emp.getId() == Integer.parseInt(empToRemove)) {
@@ -105,7 +94,6 @@ public class EmployeeServices {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response put(final Employee emp) {
-		System.out.println("UPDATE: " + emp.getId());
 		System.out.println("UPDATE: " + emp.getName());
 		// replace!
 		database.remove(emp);
@@ -121,11 +109,6 @@ public class EmployeeServices {
 		System.out.println("ADD: " + emp.getId());
 		database.add(emp);
 		return Response.status(Status.OK).build();
-	}
-
-	public static class Result {
-		private int total;
-		private List<Employee> list;
 	}
 
 }

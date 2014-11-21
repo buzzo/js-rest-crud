@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="main">
+<html>
 <head>
 <!-- Standard Meta -->
 <meta charset="utf-8" />
@@ -10,64 +10,32 @@
 <title>Cadastro Funcionário CRUD</title>
 
 <!-- CSS -->
-<link rel="stylesheet" type="text/css" href="css/semantic.min.css">
-<link rel="stylesheet" type="text/css" href="css/ng-table.min.css">
-<link rel="stylesheet" type="text/css" href="css/jquery-ui.min.css">
-<link rel="stylesheet" type="text/css" href="css/main.css">
+<link rel="stylesheet" href="css/bootstrap.min.css">
+<link rel="stylesheet" href="css/bootstrap-table.min.css">
+<link rel="stylesheet" href="css/main.css">
 </head>
-<body id="body_crud" ng-controller="formController">
 
-	<div>
+<body>
 
-		<!-- List -->
-		<table ng-table="tableParams" show-filter="true" class="ui table segment padded" template-pagination="custom/pager">
-			<tr ng-repeat="emp in $data">
-				<td data-title="'Ativo'" ng-class="emp.active ? 'positive' : 'error'">
-					<div ng-if="emp.active">
-						<i class="icon checkmark"></i>
-					</div>
-					<div ng-if="!emp.active">
-						<i class="icon close"></i>
-					</div>
-				</td>
-				<td data-title="'Código'" sortable="'code'" filter="{ 'code': 'text' }">{{emp.code}}</td>
-				<td data-title="'Matrícula'" sortable="'bagde'" filter="{ 'badge': 'text' }">{{emp.badge}}</td>
-				<td data-title="'Nome'" sortable="'name'" filter="{ 'name': 'text' }">{{emp.name}}</td>
-				<td data-title="'Cargo'" sortable="'position'" filter="{ 'position': 'text' }">{{emp.position}}</td>
-				<td data-title="'Ações'"><i ng-click="edit(emp)" class="icon edit square link"></i><i ng-click="remove(emp.id)"
-					class="icon remove square red link"></i></td>
-			</tr>
-			<tfoot>
+	<div class="container">
+
+		<button id="open_form_btn" type="button" class="btn btn-default">
+			<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Adicionar
+		</button>
+
+		<table id="table" data-height="500" data-side-pagination="server" data-pagination="true" data-page-list="[10, 50, 100]" data-search="true"
+			data-sort-name="code" data-sort-order="desc">
+			<thead>
 				<tr>
-					<th colspan="6">
-						<div id="add_btn" class="ui labeled blue icon button mini">
-							<i class="plus icon"></i> Novo Funcionário
-						</div>
-					</th>
+					<th data-field="code" data-align="center" data-sortable="true">Código</th>
+					<th data-field="active" data-align="center" data-sortable="true" data-formatter="statusFormatter">Status</th>
+					<th data-field="name" data-align="center" data-sortable="true">Nome</th>
+					<th data-field="badge" data-align="center" data-sortable="true">Matrícula</th>
+					<th data-field="position" data-align="center" data-sortable="true">Cargo</th>
+					<th data-field="id" data-align="center" data-formatter="actionFormatter">Ações</th>
 				</tr>
-			</tfoot>
+			</thead>
 		</table>
-
-		<!-- template paginator -->
-		<script type="text/ng-template" id="custom/pager">
-        <ul class="pager ng-cloak">
-          <li ng-repeat="page in pages"
-                ng-class="{'disabled': !page.active, 'previous': page.type == 'prev', 'next': page.type == 'next'}"
-                ng-show="page.type == 'prev' || page.type == 'next'" ng-switch="page.type">
-            <a ng-switch-when="prev" ng-click="params.page(page.number)" href="">&laquo; Previous</a>
-            <a ng-switch-when="next" ng-click="params.page(page.number)" href="">Next &raquo;</a>
-          </li>
-            <li> 
-            <div class="btn-group">
-                <button type="button" ng-class="{'active':params.count() == 10}" ng-click="params.count(10)" class="btn btn-default">10</button>
-                <button type="button" ng-class="{'active':params.count() == 25}" ng-click="params.count(25)" class="btn btn-default">25</button>
-                <button type="button" ng-class="{'active':params.count() == 50}" ng-click="params.count(50)" class="btn btn-default">50</button>
-                <button type="button" ng-class="{'active':params.count() == 100}" ng-click="params.count(100)" class="btn btn-default">100</button>
-            </div>
-            </li>
-        </ul>
-		</script>
-
 	</div>
 
 	<!-- Confirmation Remove Modal -->
@@ -83,150 +51,75 @@
 		</div>
 	</div>
 
-	<!-- Add Form Modal -->
-	<div id="add_form_div" class="ui modal small">
+	<div id="form_div" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
 
-		<!-- Add Form -->
-		<form id="add_form">
-			<div class="ui form segment small">
-				<div class="inline field">
-					<div class="ui checkbox large">
-						<!-- value='true' is mandatory otherwise data object over backend cannot be created because it sends 'on' -->
-						<input name="active" type="checkbox" value="true"> <label for="check">Ativo</label>
-					</div>
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">
+						<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+					</button>
+					<h4 class="modal-title">{title}</h4>
 				</div>
-				<div class="two fields">
-					<div class="field">
-						<label>Código</label>
-						<div class="ui left labeled icon input">
-							<input placeholder="Código" name="code" type="text"> <i class="key icon"></i>
-							<div class="ui corner label">
-								<i class="icon asterisk"></i>
+
+				<form id="form" method="post" class="form-horizontal">
+					<!-- stores de ID for edit command -->
+					<input id="id" type="text" class="hidden" name="id">
+					<div class="modal-body">
+						<div class="form-group">
+							<div class="col-sm-offset-3 col-sm-9">
+								<div class="checkbox">
+									<label><input type="checkbox" name="active" value="true"></input>Ativo
+									</label>
+								</div>
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="name" class="col-sm-3 control-label">Nome</label>
+							<div class="col-sm-9">
+								<input id="name" type="text" class="form-control" placeholder="Nome" name="name">
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="code" class="col-sm-3 control-label">Código</label>
+							<div class="col-sm-9">
+								<input id="code" type="text" class="form-control" placeholder=Código name="code">
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="badge" class="col-sm-3 control-label">Matrícula</label>
+							<div class="col-sm-9">
+								<input id="badge" type="text" class="form-control" placeholder="Matrícula" name="badge">
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="aposition" class="col-sm-3 control-label">Cargo</label>
+							<div class="col-sm-9">
+								<input id="position" type="text" class="form-control" placeholder="Cargo" name="position">
 							</div>
 						</div>
 					</div>
-					<div class="field">
-						<label>Matrícula</label>
-						<div class="ui left labeled icon input">
-							<input placeholder="Matrícula" name="badge" type="text"> <i class="book icon"></i>
-							<div class="ui corner label">
-								<i class="icon asterisk"></i>
-							</div>
-						</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+						<button id="frm-ok-btn" type="submit" class="btn btn-primary">{ok-button}</button>
 					</div>
-				</div>
-				<div class="field">
-					<label>Nome</label>
-					<div class="ui left labeled icon input">
-						<input placeholder="Nome" name="name" type="text"> <i class="user icon"></i>
-						<div class="ui corner label">
-							<i class="icon asterisk"></i>
-						</div>
-					</div>
-				</div>
-				<div class="field">
-					<label>Cargo</label>
-					<div class="ui left labeled icon input">
-						<input placeholder="Cargo" name="position" type="text"> <i class="male icon"></i>
-					</div>
-				</div>
-				<div id="add_form_ok" class="ui button small blue submit">Adicionar</div>
-				<div id="add_form_cancel" class="ui button small">Cancelar</div>
-			</div>
-		</form>
-	</div>
+				</form>
 
-	<!-- Edit Form Modal -->
-	<div id="edit_form_div" class="ui modal small">
-
-		<!-- Edit Form -->
-		<form id="edit_form">
-			<!-- holds the ID -->
-
-			<div class="ui form segment small">
-				<input name="id" type="hidden">
-				<div class="inline field">
-					<div class="ui checkbox large">
-						<!-- value='true' is mandatory otherwise data object over backend cannot be created because it sends 'on' -->
-						<input name="active" type="checkbox" value="true"> <label for="check">Ativo</label>
-					</div>
-				</div>
-				<div class="two fields">
-					<div class="field">
-						<label>Código</label>
-						<div class="ui left labeled icon input">
-							<input placeholder="Código" name="code" type="text"> <i class="key icon"></i>
-							<div class="ui corner label">
-								<i class="icon asterisk"></i>
-							</div>
-						</div>
-					</div>
-					<div class="field">
-						<label>Matrícula</label>
-						<div class="ui left labeled icon input">
-							<input placeholder="Matrícula" name="badge" type="text"> <i class="book icon"></i>
-							<div class="ui corner label">
-								<i class="icon asterisk"></i>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="field">
-					<label>Nome</label>
-					<div class="ui left labeled icon input">
-						<input placeholder="Nome" name="name" type="text"> <i class="user icon"></i>
-						<div class="ui corner label">
-							<i class="icon asterisk"></i>
-						</div>
-					</div>
-				</div>
-				<div class="field">
-					<label>Cargo</label>
-					<div class="ui left labeled icon input">
-						<input placeholder="Cargo" name="position" type="text"> <i class="male icon"></i>
-					</div>
-				</div>
-				<div id="edit_form_ok" class="ui button small blue submit">Adicionar</div>
-				<div id="edit_form_cancel" class="ui button small">Cancelar</div>
-			</div>
-		</form>
-	</div>
-
-	<!-- Main message text box -->
-	<div id="growl" style="display: none">
-		<div id="growl_div_error">
-			<div class="ui error message">
-				<i class="close icon ui-notify-close"></i>
-				<div class="header">#{title}</div>
-				#{text}
-			</div>
-		</div>
-		<div id="growl_div_success">
-			<div class="ui success message">
-				<i class="close icon ui-notify-close"></i>
-				<div class="header">#{title}</div>
-				#{text}
-			</div>
-		</div>
-		<div id="growl_div_info">
-			<div class="ui info message">
-				<i class="close icon ui-notify-close"></i>
-				<div class="header">#{title}</div>
-				#{text}
 			</div>
 		</div>
 	</div>
+
+
 
 	<!-- Javascript -->
 	<script src="js/vendor/jquery-1.11.1.js"></script>
-	<script src="js/vendor/jquery-ui.min.js"></script>
-	<script src="js/vendor/jquery.notify.min.js"></script>
-	<script src="js/vendor/semantic.min.js"></script>
 	<script src="js/vendor/jquery.serializejson.min.js"></script>
-	<script src="js/vendor/jquery.notify.min.js"></script>
-	<script src="js/vendor/angular.min.js"></script>
-	<script src="js/vendor/angular-resource.min.js"></script>
-	<script src="js/vendor/ng-table.min.js"></script>
+	<script src="js/vendor/bootstrap-table.min.js"></script>
+	<script src="js/vendor/bootstrap.min.js"></script>
+	<script src="js/vendor/bootstrapValidator.min.js"></script>
+	<script src="js/vendor/bootbox.min.js"></script>
+	<script src="js/vendor/notify.min.js"></script>
+	<script src="js/validators.js"></script>
 	<script src="js/main.js"></script>
 
 </body>
