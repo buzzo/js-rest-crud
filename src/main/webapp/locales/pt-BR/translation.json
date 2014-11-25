@@ -1,0 +1,42 @@
+{
+    "add": "Adicionar",
+    "save" : "Salvar",
+    "actions" : "Ações",
+    "remove" : "Remover",
+    "cancel" : "Cancelar",
+	"active" : "Ativo",
+    
+    "employee" : {
+        
+        "code": "Código",
+    	"status" : "Status",
+    	"name" : "Nome",
+    	"badge" : "Matrícula",
+    	"position" : "Cargo",
+    
+    	"remove" : {
+    		"msg" : {
+    			"confirmation" : "Tem certeza que deseja remover este funcionário",
+    			"success" : "Funcionário removido com sucesso!" 
+    		}
+    	},
+    	"add" : {
+    		"title" : "Adicionar Funcionário",
+    		"msg" : {
+    			"success" : "Funcionário adicionado com sucesso!"
+    		}
+    	},
+    	"update" : {
+    	    "title" : "Atualizar Funcionário",
+    		"msg" : {
+    			"success" : "Funcionário atualizado com sucesso!"
+    		}
+    	}
+    	
+    },
+    
+    "error" : {
+    	"server" : "Error na comunicação com o servidor. Tente novamente."
+    }
+    
+}

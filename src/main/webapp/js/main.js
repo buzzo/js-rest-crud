@@ -1,5 +1,15 @@
 var URL = 'http://localhost:8180/resteasy/rest/employer';
 
+// i18n support
+i18n.init({
+	lng : "pt-BR",
+	fallbackLng : false
+}, function(t) {
+	$(".container").i18n();
+	$(".form").i18n();
+});
+
+// table formatter for action column
 function actionFormatter(value, row) {
 	// value is the ID
 	var edit = '<button type="button" data-id="' + value
@@ -11,6 +21,7 @@ function actionFormatter(value, row) {
 	return edit + remove;
 }
 
+// table formatter for status column
 function statusFormatter(value, row) {
 	var icon = value ? 'glyphicon-ok' : 'glyphicon-lock';
 	var text = value ? 'Habilitado' : 'Desabilitado';
@@ -44,7 +55,7 @@ function refreshTable() {
 	$('#table').bootstrapTable('refresh');
 }
 
-function get(id, onSuccess) {
+function http_get(id, onSuccess) {
 	$.ajax({
 		url : URL + "/" + id,
 		type : 'get',
@@ -54,13 +65,12 @@ function get(id, onSuccess) {
 			onSuccess(data);
 		},
 		error : function(data) {
-			$.notify("Error na comunicação com o servidor. Tente novamente.",
-					"error");
+			$.notify($.t("error.server"), "error");
 		}
 	});
 }
 
-function post(data) {
+function http_post(data) {
 	$.ajax({
 		url : URL,
 		type : 'post',
@@ -68,11 +78,10 @@ function post(data) {
 		data : data,
 		success : function(data) {
 			refreshTable();
-			$.notify("Funcionário adicionado com sucesso!", "success");
+			$.notify($.t("employee.add.msg.success"), "success");
 		},
 		error : function(data) {
-			$.notify("Error na comunicação com o servidor. Tente novamente.",
-					"error");
+			$.notify($.t("error.server"), "error");
 		},
 		complete : function(data, status) {
 			closeForm();
@@ -80,7 +89,7 @@ function post(data) {
 	});
 }
 
-function put(data) {
+function http_put(data) {
 	$.ajax({
 		url : URL,
 		type : 'put',
@@ -88,11 +97,10 @@ function put(data) {
 		data : data,
 		success : function(data) {
 			refreshTable();
-			$.notify("Funcionário atualizado com sucesso!", "success");
+			$.notify($.t("employee.update.msg.success"), "success");
 		},
 		error : function(data) {
-			$.notify("Error na comunicação com o servidor. Tente novamente.",
-					"error");
+			$.notify($.t("error.server"), "error");
 		},
 		complete : function(data, status) {
 			closeForm();
@@ -100,7 +108,7 @@ function put(data) {
 	});
 }
 
-function remove(id) {
+function http_delete(id) {
 	$.ajax({
 		url : URL,
 		type : 'delete',
@@ -108,23 +116,34 @@ function remove(id) {
 		data : id + "",
 		success : function(data) {
 			refreshTable();
-			$.notify("Funcionário removido com sucesso!", "info");
+			$.notify($.t("employee.remove.msg.success"), "success");
 		},
 		error : function(data) {
-			$.notify("Error na comunicação com o servidor. Tente novamente.",
-					"error");
+			$.notify($.t("error.server"), "error");
 		}
 	});
 }
 
 function openRemovePopup(event) {
 	var id = $(event.target).data('id');
-	bootbox.confirm("Tem certeza que deseja remover este funcionário?",
-			function(result) {
-				if (result) {
-					remove(id);
+
+	bootbox.dialog({
+		message : $.t("employee.remove.msg.confirmation") + "?",
+		buttons : {
+			cancel : {
+				label : $.t("cancel"),
+				className : "btn-default"
+			},
+			ok : {
+				label : $.t("remove"),
+				className : "btn-primary",
+				callback : function() {
+					http_delete(id);
 				}
-			});
+			}
+		}
+	});
+
 }
 
 function fillForm(data) {
@@ -154,8 +173,8 @@ $(document).ready(function() {
 	// open modal
 	$('#open_form_btn').on('click', function() {
 		clearForm();
-		openForm('Adicionar Funcionário', 'Adicionar', function(data) {
-			post(data);
+		openForm($.t("employee.add.title"), $.t("add"), function(data) {
+			http_post(data);
 		});
 	});
 
@@ -165,25 +184,34 @@ $(document).ready(function() {
 
 	$(document).on('click', '.edit-act', function(event) {
 		clearForm();
-		get($(event.target).data('id'), function(data) {
+		http_get($(event.target).data('id'), function(data) {
 			fillForm(data);
 		});
-		openForm('Atualizar Funcionário', 'Salvar', function(data) {
-			put(data);
+		openForm($.t("employee.update.title"), $.t("save"), function(data) {
+			http_put(data);
 		});
 	});
 
 	// validate modal
-	$('#form').bootstrapValidator(validators);
-	
-	// configures what happens when the form is successfully submited
+	$('#form').bootstrapValidator({
+		excluded : [ ':disabled' ],
+		feedbackIcons : {
+			valid : 'glyphicon glyphicon-ok',
+			invalid : 'glyphicon glyphicon-remove',
+			validating : 'glyphicon glyphicon-refresh'
+		}
+	});
+
+	// configures what happens when the form is successfully
+	// submited
 	$('#form').bootstrapValidator().on('success.form.bv', function(e) {
 		// prevent form submission
 		e.preventDefault();
 		// get data from form
 		var data = JSON.stringify($(e.target).serializeJSON());
 		if (httpCallBack != null) {
-			// executes the callback function set before when the form was open 
+			// executes the callback function set before
+			// when the form was open
 			httpCallBack(data);
 		}
 	});

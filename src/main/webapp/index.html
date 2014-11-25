@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
-<!-- Site Properities -->
+<!-- Site Properties -->
 <title>Cadastro Funcionário CRUD</title>
 
 <!-- CSS -->
@@ -19,47 +19,38 @@
 
 	<div class="container">
 
+		<!-- add btn -->
 		<button id="open_form_btn" type="button" class="btn btn-default">
-			<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Adicionar
+			<span class="glyphicon glyphicon-plus" aria-hidden="true"></span><span data-i18n>add</span>
 		</button>
 
+		<!-- main table -->
 		<table id="table" data-height="500" data-side-pagination="server" data-pagination="true" data-page-list="[10, 50, 100]" data-search="true"
 			data-sort-name="code" data-sort-order="desc">
 			<thead>
 				<tr>
-					<th data-field="code" data-align="center" data-sortable="true">Código</th>
-					<th data-field="active" data-align="center" data-sortable="true" data-formatter="statusFormatter">Status</th>
-					<th data-field="name" data-align="center" data-sortable="true">Nome</th>
-					<th data-field="badge" data-align="center" data-sortable="true">Matrícula</th>
-					<th data-field="position" data-align="center" data-sortable="true">Cargo</th>
-					<th data-field="id" data-align="center" data-formatter="actionFormatter">Ações</th>
+					<th data-field="code" data-align="center" data-sortable="true"><span data-i18n>employee.code</span></th>
+					<th data-field="active" data-align="center" data-sortable="true" data-formatter="statusFormatter"><span data-i18n>employee.status</span></th>
+					<th data-field="name" data-align="center" data-sortable="true"><span data-i18n>employee.name</span></th>
+					<th data-field="badge" data-align="center" data-sortable="true"><span data-i18n>employee.badge</span></th>
+					<th data-field="position" data-align="center" data-sortable="true"><span data-i18n>employee.position</span></th>
+					<th data-field="id" data-align="center" data-formatter="actionFormatter"><span data-i18n>actions</span></th>
 				</tr>
 			</thead>
 		</table>
+
 	</div>
 
-	<!-- Confirmation Remove Modal -->
-	<div id="remove_confirmation" class="ui modal small">
-		<i class="close icon"></i>
-		<div class="header">Remover Funcionário?</div>
-		<div class="content">
-			<div class="left">Tem certeza que deseja remover este funcionário?</div>
-		</div>
-		<div class="actions">
-			<div id="remove_ok" class="ui button small negative">Remover</div>
-			<div class="ui button small">Cancelar</div>
-		</div>
-	</div>
-
-	<div id="form_div" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+	<!-- Add and Edit form -->
+	<div id="form_div" class="modal fade form" tabindex="-1" role="dialog" aria-hidden="true">
 
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal">
-						<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+						<span aria-hidden="true">&times;</span><span class="sr-only"></span>
 					</button>
-					<h4 class="modal-title">{title}</h4>
+					<h4 class="modal-title">{this.title.will.be.replaced.by.javascript}</h4>
 				</div>
 
 				<form id="form" method="post" class="form-horizontal">
@@ -69,47 +60,46 @@
 						<div class="form-group">
 							<div class="col-sm-offset-3 col-sm-9">
 								<div class="checkbox">
-									<label><input type="checkbox" name="active" value="true"></input>Ativo
-									</label>
+									<label><input type="checkbox" name="active" value="true"></input><span data-i18n>active</span></label>
 								</div>
 							</div>
 						</div>
 						<div class="form-group">
-							<label for="name" class="col-sm-3 control-label">Nome</label>
+							<label for="name" class="col-sm-3 control-label"><span data-i18n>employee.name</span></label>
 							<div class="col-sm-9">
-								<input id="name" type="text" class="form-control" placeholder="Nome" name="name">
+								<input id="name" type="text" class="form-control" name="name" data-bv-notempty data-bv-stringlength data-bv-stringlength-max="32">
 							</div>
 						</div>
 						<div class="form-group">
-							<label for="code" class="col-sm-3 control-label">Código</label>
+							<label for="code" class="col-sm-3 control-label"><span data-i18n>employee.code</span></label>
 							<div class="col-sm-9">
-								<input id="code" type="text" class="form-control" placeholder=Código name="code">
+								<input id="code" type="text" class="form-control" name="code" data-bv-notempty data-bv-stringlength data-bv-stringlength-max="32">
 							</div>
 						</div>
 						<div class="form-group">
-							<label for="badge" class="col-sm-3 control-label">Matrícula</label>
+							<label for="badge" class="col-sm-3 control-label"><span data-i18n>employee.badge</span></label>
 							<div class="col-sm-9">
-								<input id="badge" type="text" class="form-control" placeholder="Matrícula" name="badge">
+								<input id="badge" type="text" class="form-control" name="badge" data-bv-notempty data-bv-stringlength data-bv-stringlength-max="32">
 							</div>
 						</div>
 						<div class="form-group">
-							<label for="aposition" class="col-sm-3 control-label">Cargo</label>
+							<label for="aposition" class="col-sm-3 control-label"><span data-i18n>employee.position</span></label>
 							<div class="col-sm-9">
-								<input id="position" type="text" class="form-control" placeholder="Cargo" name="position">
+								<input id="position" type="text" class="form-control" name="position" data-bv-stringlength data-bv-stringlength-max="32">
 							</div>
 						</div>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-						<button id="frm-ok-btn" type="submit" class="btn btn-primary">{ok-button}</button>
+						<button type="button" class="btn btn-default" data-dismiss="modal">
+							<span data-i18n>cancel</span>
+						</button>
+						<button id="frm-ok-btn" type="submit" class="btn btn-primary">{this.text.button.will.be.replaced.by.javascript}</button>
 					</div>
 				</form>
 
 			</div>
 		</div>
 	</div>
-
-
 
 	<!-- Javascript -->
 	<script src="js/vendor/jquery-1.11.1.js"></script>
@@ -119,8 +109,10 @@
 	<script src="js/vendor/bootstrapValidator.min.js"></script>
 	<script src="js/vendor/bootbox.min.js"></script>
 	<script src="js/vendor/notify.min.js"></script>
-	<script src="js/validators.js"></script>
+	<script src="js/vendor/i18next-1.7.4.min.js"></script>
 	<script src="js/main.js"></script>
+	<script src="locales/pt-BR/validators.js"></script>
+	<script src="js/validators.js"></script>
 
 </body>
 </html>
