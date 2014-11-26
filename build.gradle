@@ -1,0 +1,18 @@
+apply plugin: 'war'
+
+def javaVersion = 1.7
+sourceCompatibility = javaVersion
+targetCompatibility = javaVersion
+
+dependencies {
+    providedCompile "org.jboss.resteasy:resteasy-jaxrs:3.0.4.Final"
+    providedCompile "org.jboss.resteasy:resteasy-jackson-provider:3.0.4.Final"
+    compile "com.google.code.gson:gson:2.3"
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://repository.jboss.org/nexus/content/groups/public-jboss'
+    }
+}

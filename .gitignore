@@ -1,5 +1,13 @@
+#eclipse
 /.settings
 /.project
 /.classpath
+
+#gradle
+/.gradle
+/build
+
+#maven
 /target
+
 **/*rebel.xml
