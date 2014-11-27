@@ -1,12 +1,18 @@
 apply plugin: 'war'
+apply plugin: 'eclipse'
+apply plugin: 'eclipse-wtp'
+apply plugin: 'jetty'
 
-def javaVersion = 1.7
-sourceCompatibility = javaVersion
-targetCompatibility = javaVersion
+version = '1.0'
+
+compileJava.options.encoding = 'UTF-8'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
 
 dependencies {
-    providedCompile "org.jboss.resteasy:resteasy-jaxrs:3.0.4.Final"
-    providedCompile "org.jboss.resteasy:resteasy-jackson-provider:3.0.4.Final"
+    compile "org.jboss.resteasy:resteasy-jaxrs:3.0.4.Final"
+    compile "org.jboss.resteasy:resteasy-jackson-provider:3.0.4.Final"
     compile "com.google.code.gson:gson:2.3"
 }
 
@@ -16,3 +22,6 @@ repositories {
         url 'https://repository.jboss.org/nexus/content/groups/public-jboss'
     }
 }
+
+
+
