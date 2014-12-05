@@ -1,19 +1,20 @@
-apply plugin: 'war'
 apply plugin: 'eclipse'
 apply plugin: 'eclipse-wtp'
-apply plugin: 'jetty'
+apply plugin: 'war'
+apply plugin: 'com.bmuschko.cargo'
 
 version = '1.0'
-
 compileJava.options.encoding = 'UTF-8'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
-
-dependencies {
-    compile "org.jboss.resteasy:resteasy-jaxrs:3.0.4.Final"
-    compile "org.jboss.resteasy:resteasy-jackson-provider:3.0.4.Final"
-    compile "com.google.code.gson:gson:2.3"
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.bmuschko:gradle-cargo-plugin:2.0.2'
+    }
 }
 
 repositories {
@@ -23,5 +24,49 @@ repositories {
     }
 }
 
+dependencies {
+    compile "com.google.code.gson:gson:2.3"
+    //
+    providedCompile "org.jboss.resteasy:resteasy-jaxrs:3.0.4.Final"
+    providedCompile "org.jboss.resteasy:resteasy-jackson-provider:3.0.4.Final"
+    //
+    def cargoVersion = '1.4.10'
+    cargo "org.codehaus.cargo:cargo-core-uberjar:$cargoVersion","org.codehaus.cargo:cargo-ant:$cargoVersion"
+}
+
+
+// wildfly 8.2.0
+cargo {
+	def extractTempDir = File.createTempDir()
+
+        containerId = 'wildfly8x'
+        port = 8080
+        deployable {
+            context = 'name'
+        }
+        local {
+	    installer {
+	        installUrl = 'http://download.jboss.org/wildfly/8.2.0.Final/wildfly-8.2.0.Final.zip'
+		downloadDir = file(System.properties.'java.io.tmpdir')
+		extractDir = extractTempDir
+            }
+            homeDir = extractTempDir
+            log = file('build/jboss.log')
+        }
+    }
+
+task integrationTest << {
+  println 'integration'
+}
+
+integrationTest.doFirst {
+    println 'Starting the embedded jboss server'
+    tasks.cargoStartLocal.execute()
+}
+
+integrationTest.doLast {
+    println 'Stopping the embedded jboss server'
+    tasks.cargoStopLocal.execute()
+}
 
 
