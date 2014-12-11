@@ -1,72 +1,70 @@
-apply plugin: 'eclipse'
-apply plugin: 'eclipse-wtp'
-apply plugin: 'war'
-apply plugin: 'com.bmuschko.cargo'
+import org.apache.tools.ant.taskdefs.condition.Os
 
-version = '1.0'
+
+ext {
+	drivers = [
+		"firefox",
+		"chrome",
+		"phantomJs"
+	]
+	ext {
+		groovyVersion = '2.3.6'
+		// geb
+		gebVersion = '0.10.0'
+		seleniumVersion = '2.43.1'
+		chromeDriverVersion = '2.10'
+		phantomJsVersion = '1.9.7'
+		// cargo
+		cargoVersion = '1.4.10'
+		serverHost = 'localhost'
+		serverPort = 9090
+		container = 'wildfly8x'
+		containerURL = 'http://download.jboss.org/wildfly/8.2.0.Final/wildfly-8.2.0.Final.zip'
+	}
+}
+
+apply plugin: 'war'
+apply plugin: 'groovy'
+
+apply from: "gradle/ide.gradle"
+apply from: "gradle/geb-cargo.gradle"
+
 compileJava.options.encoding = 'UTF-8'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.bmuschko:gradle-cargo-plugin:2.0.2'
-    }
+	repositories { jcenter() }
+	dependencies { classpath 'com.bmuschko:gradle-cargo-plugin:2.0.2' }
 }
 
 repositories {
-    mavenCentral()
-    maven {
-        url 'https://repository.jboss.org/nexus/content/groups/public-jboss'
-    }
+	mavenCentral()
+	maven { url 'https://repository.jboss.org/nexus/content/groups/public-jboss' }
 }
 
 dependencies {
-    compile "com.google.code.gson:gson:2.3"
-    //
-    providedCompile "org.jboss.resteasy:resteasy-jaxrs:3.0.4.Final"
-    providedCompile "org.jboss.resteasy:resteasy-jackson-provider:3.0.4.Final"
-    //
-    def cargoVersion = '1.4.10'
-    cargo "org.codehaus.cargo:cargo-core-uberjar:$cargoVersion","org.codehaus.cargo:cargo-ant:$cargoVersion"
+	compile "com.google.code.gson:gson:2.3"
+	providedCompile "org.jboss.resteasy:resteasy-jaxrs:3.0.4.Final"
+	providedCompile "org.jboss.resteasy:resteasy-jackson-provider:3.0.4.Final"
 }
 
 
-// wildfly 8.2.0
-cargo {
-	def extractTempDir = File.createTempDir()
-
-        containerId = 'wildfly8x'
-        port = 8080
-        deployable {
-            context = 'name'
-        }
-        local {
-	    installer {
-	        installUrl = 'http://download.jboss.org/wildfly/8.2.0.Final/wildfly-8.2.0.Final.zip'
-		downloadDir = file(System.properties.'java.io.tmpdir')
-		extractDir = extractTempDir
-            }
-            homeDir = extractTempDir
-            log = file('build/jboss.log')
-        }
-    }
-
-task integrationTest << {
-  println 'integration'
+chromeTest {
+	dependsOn unzipChromeDriver
+	//
+	def chromedriverFilename = Os.isFamily(Os.FAMILY_WINDOWS) ? "chromedriver.exe" : "chromedriver"
+	systemProperty "webdriver.chrome.driver", new File(unzipChromeDriver.outputs.files.singleFile, chromedriverFilename).absolutePath
 }
 
-integrationTest.doFirst {
-    println 'Starting the embedded jboss server'
-    tasks.cargoStartLocal.execute()
+phantomJsTest {
+	dependsOn unzipPhantomJs
+	//
+	def phantomJsFilename = Os.isFamily(Os.FAMILY_WINDOWS) ? "phantomjs.exe" : "bin/phantomjs"
+	systemProperty "phantomjs.binary.path", new File(unzipPhantomJs.outputs.files.singleFile, phantomJsFilename).absolutePath
 }
 
-integrationTest.doLast {
-    println 'Stopping the embedded jboss server'
-    tasks.cargoStopLocal.execute()
+test {
+	dependsOn drivers.collect { tasks["${it}Test"] }
+	enabled = false
 }
-
-

@@ -1,4 +1,4 @@
-var URL = 'http://localhost:8080/resteasy/rest/employer';
+var URL = 'rest/employer';
 
 // i18n support
 i18n.init({

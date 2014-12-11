@@ -1,0 +1,126 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+import org.apache.commons.io.FileUtils
+
+apply plugin: 'com.bmuschko.cargo'
+
+buildscript {
+	repositories { jcenter() }
+	dependencies { classpath 'commons-io:commons-io:2.4' }
+}
+
+repositories { mavenCentral() }
+
+dependencies {
+	// spock, need to depend on geb-spock
+	testCompile "org.gebish:geb-spock:$gebVersion"
+	testCompile("org.spockframework:spock-core:0.7-groovy-2.0") { exclude group: "org.codehaus.groovy" }
+	testCompile "org.codehaus.groovy:groovy-all:$groovyVersion"
+	// selenium
+	testCompile "org.seleniumhq.selenium:selenium-chrome-driver:$seleniumVersion"
+	testCompile "org.seleniumhq.selenium:selenium-firefox-driver:$seleniumVersion"
+	testCompile("com.github.detro.ghostdriver:phantomjsdriver:1.1.0") {  // phantomjs driver pulls in a different selenium version
+		transitive = false  }
+	// cargo
+	cargo "org.codehaus.cargo:cargo-core-uberjar:$cargoVersion","org.codehaus.cargo:cargo-ant:$cargoVersion"
+}
+
+cargo {
+	def extractTempDir = File.createTempDir()
+	containerId = container
+	port = serverPort
+	deployable { context = 'myapp' }
+	local {
+		installer {
+			installUrl = containerURL
+			downloadDir = file("$buildDir/download")
+			extractDir = extractTempDir
+		}
+		homeDir = extractTempDir
+		log = file("$buildDir/jboss.log")
+	}
+}
+
+drivers.each { driver ->
+	task "${driver}Test"(type: Test) {
+		// start server
+		doFirst{
+			tasks.cargoStartLocal.execute()
+		}
+
+		reports {
+			html.destination = reporting.file("$name/tests")
+			junitXml.destination = file("$buildDir/test-results/$name")
+		}
+
+		outputs.upToDateWhen { false }  // Always run tests
+
+		systemProperty "geb.build.reportsDir", reporting.file("$name/geb")
+		systemProperty "geb.env", driver
+
+		// baseUrl for the build
+		systemProperty "geb.build.baseUrl", "http://$serverHost:$serverPort/js-rest-crud"
+
+		// stop server
+		doLast{
+			tasks.cargoStopLocal.execute()
+		}
+
+	}
+}
+
+task downloadChromeDriver {
+	def outputFile = file("$buildDir/webdriver/chromedriver.zip")
+	inputs.property("chromeDriverVersion", chromeDriverVersion)
+	outputs.file(outputFile)
+	doLast {
+		def driverOsFilenamePart
+		if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+			driverOsFilenamePart = "win32"
+		} else if (Os.isFamily(Os.FAMILY_MAC)) {
+			driverOsFilenamePart = "mac32"
+		} else if (Os.isFamily(Os.FAMILY_UNIX)) {
+			driverOsFilenamePart = Os.isArch("amd64") ? "linux64" : "linux32"
+		}
+		FileUtils.copyURLToFile(new URL("http://chromedriver.storage.googleapis.com/${chromeDriverVersion}/chromedriver_${driverOsFilenamePart}.zip"), outputFile)
+	}
+}
+
+task unzipChromeDriver(type: Copy) {
+	def outputDir = file("$buildDir/webdriver/chromedriver")
+	dependsOn downloadChromeDriver
+	outputs.dir(outputDir)
+	from(zipTree(downloadChromeDriver.outputs.files.singleFile))
+	into(outputDir)
+}
+
+task downloadPhantomJs {
+	def osFilenamePart
+	if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+		osFilenamePart = "windows.zip"
+	} else if (Os.isFamily(Os.FAMILY_MAC)) {
+		osFilenamePart = "macosx.zip"
+	} else if (Os.isFamily(Os.FAMILY_UNIX)) {
+		osFilenamePart = Os.isArch("amd64") ? "linux-x86_64.tar.bz2" : "linux-i686.tar.bz2"
+	}
+	def filename = "phantomjs-$phantomJsVersion-$osFilenamePart"
+	def outputFile = file("$buildDir/webdriver/$filename")
+	inputs.property("phantomJsVersion", phantomJsVersion)
+	outputs.file(outputFile)
+	doLast {
+		FileUtils.copyURLToFile(new URL("https://bitbucket.org/ariya/phantomjs/downloads/$filename"), outputFile)
+	}
+}
+
+task unzipPhantomJs(type: Copy) {
+	def outputDir = file("$buildDir/webdriver/phantomjs")
+	dependsOn downloadPhantomJs
+	outputs.dir(outputDir)
+
+	def archive = downloadPhantomJs.outputs.files.singleFile
+
+	from(Os.isFamily(Os.FAMILY_MAC) || Os.isFamily(Os.FAMILY_WINDOWS) ? zipTree(archive) : tarTree(archive))
+	into(outputDir)
+	eachFile { FileCopyDetails fcp ->
+		fcp.relativePath = new RelativePath(!fcp.directory, *fcp.relativePath.segments[1..-1])
+	}
+}
