@@ -49,22 +49,14 @@ dependencies {
 	providedCompile "org.jboss.resteasy:resteasy-jackson-provider:3.0.4.Final"
 }
 
-
-chromeTest {
-	dependsOn unzipChromeDriver
-	//
-	def chromedriverFilename = Os.isFamily(Os.FAMILY_WINDOWS) ? "chromedriver.exe" : "chromedriver"
-	systemProperty "webdriver.chrome.driver", new File(unzipChromeDriver.outputs.files.singleFile, chromedriverFilename).absolutePath
-}
-
-phantomJsTest {
-	dependsOn unzipPhantomJs
-	//
-	def phantomJsFilename = Os.isFamily(Os.FAMILY_WINDOWS) ? "phantomjs.exe" : "bin/phantomjs"
-	systemProperty "phantomjs.binary.path", new File(unzipPhantomJs.outputs.files.singleFile, phantomJsFilename).absolutePath
-}
-
 test {
-	dependsOn drivers.collect { tasks["${it}Test"] }
+	// hardcoded default browser
+	dependsOn firefoxTest
+	// dependsOn phantomJsTest
+	// dependsOn drivers.collect { tasks["${it}Test"] }
+	
+	// already run all tests through dependensOn. killing test task
 	enabled = false
 }
+
+

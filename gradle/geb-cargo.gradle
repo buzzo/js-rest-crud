@@ -64,7 +64,6 @@ drivers.each { driver ->
 		doLast{
 			tasks.cargoStopLocal.execute()
 		}
-
 	}
 }
 
@@ -123,4 +122,18 @@ task unzipPhantomJs(type: Copy) {
 	eachFile { FileCopyDetails fcp ->
 		fcp.relativePath = new RelativePath(!fcp.directory, *fcp.relativePath.segments[1..-1])
 	}
+}
+
+chromeTest {
+	dependsOn unzipChromeDriver
+	//
+	def chromedriverFilename = Os.isFamily(Os.FAMILY_WINDOWS) ? "chromedriver.exe" : "chromedriver"
+	systemProperty "webdriver.chrome.driver", new File(unzipChromeDriver.outputs.files.singleFile, chromedriverFilename).absolutePath
+}
+
+phantomJsTest {
+	dependsOn unzipPhantomJs
+	//
+	def phantomJsFilename = Os.isFamily(Os.FAMILY_WINDOWS) ? "phantomjs.exe" : "bin/phantomjs"
+	systemProperty "phantomjs.binary.path", new File(unzipPhantomJs.outputs.files.singleFile, phantomJsFilename).absolutePath
 }
