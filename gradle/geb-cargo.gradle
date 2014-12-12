@@ -44,7 +44,7 @@ cargo {
 		homeDir = extractTempDir
 		log = file("$buildDir/jboss.log")
 		// jacoco agent for coverage
-		jvmArgs = "-javaagent:$buildDir/jacoco/lib/jacocoagent.jar=destfile=$buildDir/jacoco/jacoco.exec,output=tcpserver,address=*"
+		jvmArgs = "-javaagent:$buildDir/jacoco/unzip/lib/jacocoagent.jar=destfile=$buildDir/jacoco/jacoco.exec,append=false"
 	}
 }
 
@@ -55,35 +55,6 @@ jacocoTestReport {
 	}
 }
 
-drivers.each { driver ->
-	task "${driver}Test"(type: Test) {
-		doFirst{
-			// copy jacoco agent jar
-			tasks.unzipJacocoAgent.execute()
-			// start server
-			tasks.cargoStartLocal.execute()
-		}
-
-		reports {
-			html.destination = reporting.file("$name/tests")
-			junitXml.destination = file("$buildDir/test-results/$name")
-		}
-
-		outputs.upToDateWhen { false }  // Always run tests
-
-		systemProperty "geb.build.reportsDir", reporting.file("$name/geb")
-		systemProperty "geb.env", driver
-
-		// baseUrl for the build
-		systemProperty "geb.build.baseUrl", "http://$serverHost:$serverPort/js-rest-crud"
-
-		doLast{
-			// stop server
-			tasks.cargoStopLocal.execute()
-		}
-	}
-}
-
 task downloadJacocoAgent {
 	def outputFile = file("$buildDir/jacoco/jacocoagent.zip")
 	outputs.file(outputFile)
@@ -91,81 +62,9 @@ task downloadJacocoAgent {
 }
 
 task unzipJacocoAgent(type: Copy) {
-	def outputDir = file("$buildDir/jacoco/")
+	def outputDir = file("$buildDir/jacoco/unzip")
 	dependsOn downloadJacocoAgent
 	outputs.dir(outputDir)
 	from(zipTree(downloadJacocoAgent.outputs.files.singleFile))
 	into(outputDir)
 }
-
-task downloadChromeDriver {
-	def outputFile = file("$buildDir/webdriver/chromedriver.zip")
-	inputs.property("chromeDriverVersion", chromeDriverVersion)
-	outputs.file(outputFile)
-	doLast {
-		def driverOsFilenamePart
-		if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-			driverOsFilenamePart = "win32"
-		} else if (Os.isFamily(Os.FAMILY_MAC)) {
-			driverOsFilenamePart = "mac32"
-		} else if (Os.isFamily(Os.FAMILY_UNIX)) {
-			driverOsFilenamePart = Os.isArch("amd64") ? "linux64" : "linux32"
-		}
-		FileUtils.copyURLToFile(new URL("http://chromedriver.storage.googleapis.com/${chromeDriverVersion}/chromedriver_${driverOsFilenamePart}.zip"), outputFile)
-	}
-}
-
-task unzipChromeDriver(type: Copy) {
-	def outputDir = file("$buildDir/webdriver/chromedriver")
-	dependsOn downloadChromeDriver
-	outputs.dir(outputDir)
-	from(zipTree(downloadChromeDriver.outputs.files.singleFile))
-	into(outputDir)
-}
-
-task downloadPhantomJs {
-	def osFilenamePart
-	if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-		osFilenamePart = "windows.zip"
-	} else if (Os.isFamily(Os.FAMILY_MAC)) {
-		osFilenamePart = "macosx.zip"
-	} else if (Os.isFamily(Os.FAMILY_UNIX)) {
-		osFilenamePart = Os.isArch("amd64") ? "linux-x86_64.tar.bz2" : "linux-i686.tar.bz2"
-	}
-	def filename = "phantomjs-$phantomJsVersion-$osFilenamePart"
-	def outputFile = file("$buildDir/webdriver/$filename")
-	inputs.property("phantomJsVersion", phantomJsVersion)
-	outputs.file(outputFile)
-	doLast {
-		FileUtils.copyURLToFile(new URL("https://bitbucket.org/ariya/phantomjs/downloads/$filename"), outputFile)
-	}
-}
-
-task unzipPhantomJs(type: Copy) {
-	def outputDir = file("$buildDir/webdriver/phantomjs")
-	dependsOn downloadPhantomJs
-	outputs.dir(outputDir)
-
-	def archive = downloadPhantomJs.outputs.files.singleFile
-
-	from(Os.isFamily(Os.FAMILY_MAC) || Os.isFamily(Os.FAMILY_WINDOWS) ? zipTree(archive) : tarTree(archive))
-	into(outputDir)
-	eachFile { FileCopyDetails fcp ->
-		fcp.relativePath = new RelativePath(!fcp.directory, *fcp.relativePath.segments[1..-1])
-	}
-}
-
-chromeTest {
-	dependsOn unzipChromeDriver
-	//
-	def chromedriverFilename = Os.isFamily(Os.FAMILY_WINDOWS) ? "chromedriver.exe" : "chromedriver"
-	systemProperty "webdriver.chrome.driver", new File(unzipChromeDriver.outputs.files.singleFile, chromedriverFilename).absolutePath
-}
-
-phantomJsTest {
-	dependsOn unzipPhantomJs
-	//
-	def phantomJsFilename = Os.isFamily(Os.FAMILY_WINDOWS) ? "phantomjs.exe" : "bin/phantomjs"
-	systemProperty "phantomjs.binary.path", new File(unzipPhantomJs.outputs.files.singleFile, phantomJsFilename).absolutePath
-}
-

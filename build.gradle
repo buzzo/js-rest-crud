@@ -2,14 +2,10 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 
 ext {
-	drivers = [
-		"firefox",
-		"chrome",
-		"phantomJs"
-	]
 	ext {
 		groovyVersion = '2.3.6'
 		// geb
+		driver = "firefox"
 		gebVersion = '0.10.0'
 		seleniumVersion = '2.43.1'
 		chromeDriverVersion = '2.10'
@@ -55,11 +51,21 @@ dependencies {
 }
 
 test {
-	// hardcoded default browser
-	dependsOn firefoxTest
-	// dependsOn phantomJsTest
-	// dependsOn drivers.collect { tasks["${it}Test"] }
+	doFirst{
+		// copy jacoco agent jar
+		tasks.unzipJacocoAgent.execute()
+		// start server
+		tasks.cargoStartLocal.execute()
+	}
 
-	// already run all tests through dependensOn. killing test task
-	enabled = false
+	outputs.upToDateWhen { false }  // always run tests
+
+	systemProperty "geb.build.reportsDir", reporting.file("$name/geb")
+	systemProperty "geb.env", driver
+	systemProperty "geb.build.baseUrl", "http://$serverHost:$serverPort/js-rest-crud"
+
+	doLast{
+		// stop server
+		tasks.cargoStopLocal.execute()
+	}
 }
