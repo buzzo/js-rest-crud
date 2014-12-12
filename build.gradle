@@ -25,6 +25,9 @@ ext {
 
 apply plugin: 'war'
 apply plugin: 'groovy'
+apply plugin: 'jacoco'
+
+apply plugin: 'com.github.kt3k.coveralls' // coveralls
 
 apply from: "gradle/ide.gradle"
 apply from: "gradle/geb-cargo.gradle"
@@ -34,8 +37,14 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 buildscript {
-	repositories { jcenter() }
-	dependencies { classpath 'com.bmuschko:gradle-cargo-plugin:2.0.2' }
+	repositories {
+		jcenter()
+		mavenCentral()
+	}
+	dependencies {
+		classpath 'com.bmuschko:gradle-cargo-plugin:2.0.2'
+		classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.0.1' // coveralls plugin
+	}
 }
 
 repositories {
@@ -54,9 +63,14 @@ test {
 	dependsOn firefoxTest
 	// dependsOn phantomJsTest
 	// dependsOn drivers.collect { tasks["${it}Test"] }
-	
+
 	// already run all tests through dependensOn. killing test task
 	enabled = false
 }
 
-
+jacocoTestReport {
+	reports {
+		xml.enabled = true // coveralls plugin depends on xml format report
+		html.enabled = true
+	}
+}
