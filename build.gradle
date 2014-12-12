@@ -20,14 +20,13 @@ ext {
 		serverPort = 9090
 		container = 'wildfly8x'
 		containerURL = 'http://download.jboss.org/wildfly/8.2.0.Final/wildfly-8.2.0.Final.zip'
+		// jacoco
+		jacocoVersion = '0.7.2.201409121644'
 	}
 }
 
 apply plugin: 'war'
 apply plugin: 'groovy'
-apply plugin: 'jacoco'
-
-apply plugin: 'com.github.kt3k.coveralls' // coveralls
 
 apply from: "gradle/ide.gradle"
 apply from: "gradle/geb-cargo.gradle"
@@ -37,12 +36,9 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 buildscript {
-	repositories {
-		jcenter()
-		mavenCentral()
-	}
+	repositories { jcenter() }
 	dependencies {
-		classpath 'com.bmuschko:gradle-cargo-plugin:2.0.2'
+		classpath 'com.bmuschko:gradle-cargo-plugin:2.0.2' // cargo plugin
 		classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.0.1' // coveralls plugin
 	}
 }
@@ -66,11 +62,4 @@ test {
 
 	// already run all tests through dependensOn. killing test task
 	enabled = false
-}
-
-jacocoTestReport {
-	reports {
-		xml.enabled = true // coveralls plugin depends on xml format report
-		html.enabled = true
-	}
 }

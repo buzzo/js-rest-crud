@@ -1,10 +1,16 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.commons.io.FileUtils
 
-apply plugin: 'com.bmuschko.cargo'
+apply plugin: 'jacoco'
+
+apply plugin: 'com.bmuschko.cargo' // cargo
+apply plugin: 'com.github.kt3k.coveralls' // coveralls
 
 buildscript {
-	repositories { jcenter() }
+	repositories {
+		jcenter()
+		mavenCentral()
+	}
 	dependencies { classpath 'commons-io:commons-io:2.4' }
 }
 
@@ -37,13 +43,24 @@ cargo {
 		}
 		homeDir = extractTempDir
 		log = file("$buildDir/jboss.log")
+		// jacoco agent for coverage
+		jvmArgs = "-javaagent:$buildDir/jacoco/lib/jacocoagent.jar=destfile=$buildDir/jacoco/jacoco.exec,output=tcpserver,address=*"
+	}
+}
+
+jacocoTestReport {
+	reports {
+		xml.enabled = true // coveralls plugin depends on xml format report
+		html.enabled = true
 	}
 }
 
 drivers.each { driver ->
 	task "${driver}Test"(type: Test) {
-		// start server
 		doFirst{
+			// copy jacoco agent jar
+			tasks.unzipJacocoAgent.execute()
+			// start server
 			tasks.cargoStartLocal.execute()
 		}
 
@@ -60,11 +77,25 @@ drivers.each { driver ->
 		// baseUrl for the build
 		systemProperty "geb.build.baseUrl", "http://$serverHost:$serverPort/js-rest-crud"
 
-		// stop server
 		doLast{
+			// stop server
 			tasks.cargoStopLocal.execute()
 		}
 	}
+}
+
+task downloadJacocoAgent {
+	def outputFile = file("$buildDir/jacoco/jacocoagent.zip")
+	outputs.file(outputFile)
+	FileUtils.copyURLToFile(new URL("https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=org.jacoco&a=jacoco&e=zip&v=LATEST"), outputFile)
+}
+
+task unzipJacocoAgent(type: Copy) {
+	def outputDir = file("$buildDir/jacoco/")
+	dependsOn downloadJacocoAgent
+	outputs.dir(outputDir)
+	from(zipTree(downloadJacocoAgent.outputs.files.singleFile))
+	into(outputDir)
 }
 
 task downloadChromeDriver {
@@ -137,3 +168,4 @@ phantomJsTest {
 	def phantomJsFilename = Os.isFamily(Os.FAMILY_WINDOWS) ? "phantomjs.exe" : "bin/phantomjs"
 	systemProperty "phantomjs.binary.path", new File(unzipPhantomJs.outputs.files.singleFile, phantomJsFilename).absolutePath
 }
+
