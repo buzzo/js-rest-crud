@@ -1,8 +1,6 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.commons.io.FileUtils
 
-apply plugin: 'jacoco'
-
 apply plugin: 'com.bmuschko.cargo' // cargo
 apply plugin: 'com.github.kt3k.coveralls' // coveralls
 
@@ -24,8 +22,7 @@ dependencies {
 	// selenium
 	testCompile "org.seleniumhq.selenium:selenium-chrome-driver:$seleniumVersion"
 	testCompile "org.seleniumhq.selenium:selenium-firefox-driver:$seleniumVersion"
-	testCompile("com.github.detro.ghostdriver:phantomjsdriver:1.1.0") {  // phantomjs driver pulls in a different selenium version
-		transitive = false  }
+	testCompile("com.github.detro.ghostdriver:phantomjsdriver:1.1.0") { transitive = false  } // phantomjs driver pulls in a different selenium version
 	// cargo
 	cargo "org.codehaus.cargo:cargo-core-uberjar:$cargoVersion","org.codehaus.cargo:cargo-ant:$cargoVersion"
 }
@@ -44,14 +41,7 @@ cargo {
 		homeDir = extractTempDir
 		log = file("$buildDir/jboss.log")
 		// jacoco agent for coverage
-		jvmArgs = "-javaagent:$buildDir/jacoco/unzip/lib/jacocoagent.jar=destfile=$buildDir/jacoco/jacoco.exec,append=false"
-	}
-}
-
-jacocoTestReport {
-	reports {
-		xml.enabled = true // coveralls plugin depends on xml format report
-		html.enabled = true
+		jvmArgs = "-javaagent:$buildDir/jacoco/unzip/lib/jacocoagent.jar=destfile=$buildDir/jacoco/test.exec,append=true,dumponexit=true"
 	}
 }
 

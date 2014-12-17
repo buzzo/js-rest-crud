@@ -14,8 +14,10 @@ ext {
 		cargoVersion = '1.4.10'
 		serverHost = 'localhost'
 		serverPort = 9090
-		container = 'wildfly8x'
-		containerURL = 'http://download.jboss.org/wildfly/8.2.0.Final/wildfly-8.2.0.Final.zip'
+		//		container = 'wildfly8x'
+		container = 'jboss71x'
+		containerURL = 'http://download.jboss.org/jbossas/7.1/jboss-as-7.1.1.Final/jboss-as-7.1.1.Final.zip'
+		//		containerURL = 'http://download.jboss.org/wildfly/8.2.0.Final/wildfly-8.2.0.Final.zip'
 		// jacoco
 		jacocoVersion = '0.7.2.201409121644'
 	}
@@ -23,13 +25,14 @@ ext {
 
 apply plugin: 'war'
 apply plugin: 'groovy'
+apply plugin: 'jacoco'
 
 apply from: "gradle/ide.gradle"
 apply from: "gradle/geb-cargo.gradle"
 
 compileJava.options.encoding = 'UTF-8'
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
 
 buildscript {
 	repositories { jcenter() }
@@ -50,22 +53,27 @@ dependencies {
 	providedCompile "org.jboss.resteasy:resteasy-jackson-provider:3.0.4.Final"
 }
 
+jacocoTestReport {
+	reports {
+		xml.enabled = true // coveralls plugin depends on xml format report
+		html.enabled = true
+	}
+}
+
 test {
 	doFirst{
-		// copy jacoco agent jar
-		tasks.unzipJacocoAgent.execute()
-		// start server
-		tasks.cargoStartLocal.execute()
+		tasks.unzipJacocoAgent.execute() // copy jacoco agent jar
+		tasks.cargoStartLocal.execute() // start server
 	}
 
-	outputs.upToDateWhen { false }  // always run tests
+	jacoco {  enabled = false  } // we don't need jacoco for junit tests, the agent is already set inside wildfly for acceptance tests
+	outputs.upToDateWhen { false } // always run tests
 
 	systemProperty "geb.build.reportsDir", reporting.file("$name/geb")
 	systemProperty "geb.env", driver
 	systemProperty "geb.build.baseUrl", "http://$serverHost:$serverPort/js-rest-crud"
 
 	doLast{
-		// stop server
-		tasks.cargoStopLocal.execute()
+		tasks.cargoStopLocal.execute() // stop server
 	}
 }
