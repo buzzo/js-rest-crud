@@ -38,6 +38,8 @@ cargo {
 			downloadDir = file("$buildDir/download")
 			extractDir = extractTempDir
 		}
+		// 5 minutes timeout - 600000ms
+		timeout = 600000
 		homeDir = extractTempDir
 		log = file("$buildDir/jboss.log")
 		// jacoco agent for coverage

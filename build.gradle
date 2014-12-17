@@ -10,16 +10,16 @@ ext {
 		seleniumVersion = '2.43.1'
 		chromeDriverVersion = '2.10'
 		phantomJsVersion = '1.9.7'
+		// jacoco
+		jacocoVersion = '0.7.2.201409121644'
 		// cargo
 		cargoVersion = '1.4.10'
 		serverHost = 'localhost'
 		serverPort = 9090
-		//		container = 'wildfly8x'
-		container = 'jboss71x'
-		containerURL = 'http://download.jboss.org/jbossas/7.1/jboss-as-7.1.1.Final/jboss-as-7.1.1.Final.zip'
-		//		containerURL = 'http://download.jboss.org/wildfly/8.2.0.Final/wildfly-8.2.0.Final.zip'
-		// jacoco
-		jacocoVersion = '0.7.2.201409121644'
+		container = 'wildfly8x'
+		containerURL = 'http://download.jboss.org/wildfly/8.2.0.Final/wildfly-8.2.0.Final.zip'
+		// container = 'jboss71x'
+		// containerURL = 'http://download.jboss.org/jbossas/7.1/jboss-as-7.1.1.Final/jboss-as-7.1.1.Final.zip'
 	}
 }
 

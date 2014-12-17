@@ -13,3 +13,5 @@ before_install:
 after_success:
   - ./gradlew jacocoTestReport coveralls
 
+after_failure:
+  - cat build/jboss.log
