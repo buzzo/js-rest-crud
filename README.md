@@ -12,16 +12,15 @@ Acceptance tests using Geb (http://www.gebish.org) - spock + groovy + selenium
 
 # Usage
 
-The following commands will launch the tests with the individual browsers:
+The following commands will launch the tests with the **Firefox** browser:
     
     ./gradlew clean assemble
     
 Then:
     
-    ./gradlew chromeTest
-    ./gradlew firefoxTest
-    ./gradlew phantomJsTest
+    ./gradlew test
     
+
 Replace `./gradlew` with `gradlew.bat` in the above examples if you're on Windows.
 
 
